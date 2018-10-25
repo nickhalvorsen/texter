@@ -1,25 +1,23 @@
-var totalString = "";
-var currentString = "";
-var elem;
+class Texter {
 
-function Texter(elemId, string)
-{
-    elem = document.querySelector("#" + elemId)
-    elem.innerHTML = ''
-    totalString = string;
+    constructor(elemId) {
+        this.elem = document.querySelector("#" + elemId)
+    }
 
-    UpdateTexter()
+    display(text, delayMs) {
+        this.totalString = text
+        this.currentString = ''
+        this.delayMs = delayMs
 
-}
+        this._updateTexter()
+    }
 
-function UpdateTexter()
-{
-    console.log("update")
-    if (currentString.length < totalString.length) 
-    {
-        currentString += totalString[currentString.length]
-        elem.innerHTML = currentString
+    _updateTexter() {
+        if (this.currentString.length < this.totalString.length) {
+            this.currentString += this.totalString[this.currentString.length]
+            this.elem.innerHTML = this.currentString
 
-        window.setTimeout(() => UpdateTexter(), 50);
+            window.setTimeout(() => this._updateTexter(), this.delayMs);
+        }
     }
 }
