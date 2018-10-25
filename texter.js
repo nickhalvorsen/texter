@@ -6,9 +6,9 @@ class Texter {
 
     display(text, delayMs, callback) {
         this.message = text
-        this.index = 0
-        this.currentString = ''
-        this.closingTags = ''
+        this.messageIndex = 0
+        this.currentText = ''
+        this.currentClosingTags = ''
         this.delayMs = delayMs
         this.callback = callback
 
@@ -16,54 +16,92 @@ class Texter {
     }
 
     _updateTexter() {
-        if (this.index < this.message.length) {
-            var useDelay = true
+        if (this._isDone()) {
+            this._callCallback()
+            return
+        }
 
-            var letterToAdd = this.message[this.index]
+        var useDelay = true
 
-            if (letterToAdd == '<' && this.message[this.index+1] == '/') {
-                var start = this.index
-                var end = this.message.indexOf('>', start) 
-                var htmlTag = this.message.substring(start, end+1)
-                var closingTag = '</' + this._getTagName(htmlTag) + '>'
-
-                this.currentString += htmlTag
-                this.index += closingTag.length 
-                this.closingTags = this.closingTags.replace('/^' + closingTag + '/')
-                useDelay = false
-            }
-            else if (letterToAdd == '<') {
-                var start = this.index
-                var end = this.message.indexOf('>', start) 
-                var htmlTag = this.message.substring(start, end+1)
-                var closingTag = '</' + this._getTagName(htmlTag) + '>'
-
-                this.currentString += htmlTag
-                this.index += htmlTag.length 
-                this.closingTags = closingTag + this.closingTags
-                useDelay = false
-            }
-
-            else {
-                this.currentString += letterToAdd
-                this.index++
-            }
-
-            this.elem.innerHTML = this.currentString + this.closingTags
-
-            var delayMs = useDelay ? this.delayMs : 0
-            window.setTimeout(() => this._updateTexter(), delayMs);
+        if (this._nextTokenIsClosingHtmlTag()) {
+            this._processClosingHtmlTag()
+            useDelay = false
+        }
+        else if (this._nextTokenIsOpeningHtmlTag()) {
+            this._processOpeningHtmlTag()
+            useDelay = false
         }
         else {
-            if (this.callback !== undefined) {
-                this.callback();
-            }
+            this._processSingleCharacter()
         }
+
+        this._updateElement()
+
+        var delayMs = useDelay ? this.delayMs : 0
+        window.setTimeout(() => this._updateTexter(), delayMs)
+    }
+
+    _isDone() {
+        return this.messageIndex >= this.message.length
+    }
+
+    _callCallback() {
+        if (this.callback === undefined) {
+            return
+        }
+        this.callback()
+    }
+
+    _nextTokenIsClosingHtmlTag() {
+        return this.message[this.messageIndex] == '<' 
+            && this.message[this.messageIndex+1] == '/'
+    }
+
+    _processClosingHtmlTag() {
+        var closingHtmlTag = this._getNextHtmlTag()
+        var placeholderClosingHtmlTag = this._makeClosingTag(closingHtmlTag)
+
+        this.currentText += closingHtmlTag
+        this.messageIndex += closingHtmlTag.length 
+        this.currentClosingTags = this.currentClosingTags.replace('/^' + placeholderClosingHtmlTag + '/')
+    }
+
+    _getNextHtmlTag() {
+        var start = this.messageIndex
+        var end = this.message.indexOf('>', start) 
+        return this.message.substring(start, end+1)
+    }
+
+    _makeClosingTag(openingTag) {
+        return '</' + this._getTagName(openingTag) + '>'
     }
 
     _getTagName(tag) {
         var regex = /<\/?(\w+)/
         var match = regex.exec(tag)
         return match[1]
+    }
+
+    _nextTokenIsOpeningHtmlTag() {
+        return this.message[this.messageIndex] == '<' 
+            && this.message[this.messageIndex + 1] != '\\'
+    }
+
+    _processOpeningHtmlTag() {
+        var openingTag = this._getNextHtmlTag()
+        var placeholderClosingTag = this._makeClosingTag(openingTag)
+
+        this.currentText += openingTag
+        this.messageIndex += openingTag.length 
+        this.currentClosingTags = placeholderClosingTag + this.currentClosingTags
+    }
+
+    _processSingleCharacter() {
+        this.currentText += this.message[this.messageIndex]
+        this.messageIndex++
+    }
+
+    _updateElement() {
+        this.elem.innerHTML = this.currentText + this.currentClosingTags
     }
 }
