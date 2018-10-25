@@ -6,6 +6,12 @@
     padding: .5em;
     border: 1px solid black;
 }
+.italic {
+    font-style: italic;
+}
+.red {
+    color: firebrick;
+}
 </style>
 
 
@@ -19,7 +25,7 @@
 
     var texter = new Texter("texter")
     var callback = function() { console.log('callback')}
-    texter.display("asiteasitenaisetnisedieasnd", 20, callback)
+    texter.display("asiteasitenais<span class=\"italic\">begin italics <span class=\"red\">redredred</span> still italics</span>etnisedisdeansdadeasnd", 100, callback)
 
     
 
