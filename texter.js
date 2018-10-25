@@ -4,10 +4,11 @@ class Texter {
         this.elem = document.querySelector("#" + elemId)
     }
 
-    display(text, delayMs) {
+    display(text, delayMs, callback) {
         this.totalString = text
         this.currentString = ''
         this.delayMs = delayMs
+        this.callback = callback
 
         this._updateTexter()
     }
@@ -18,6 +19,11 @@ class Texter {
             this.elem.innerHTML = this.currentString
 
             window.setTimeout(() => this._updateTexter(), this.delayMs);
+        }
+        else {
+            if (this.callback !== undefined) {
+                this.callback();
+            }
         }
     }
 }
